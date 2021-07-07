@@ -106,9 +106,9 @@ var arr = [
 // };
 
 // addTask(1000, '1');
-// addTask(500, '2');
-// addTask(300, '3');
-// addTask(400, '4');
+// addTask(1500, '2');
+// addTask(1300, '3');
+// addTask(1400, '4');
 // s.run();
 
 class Schedule {
@@ -116,53 +116,67 @@ class Schedule {
     this.count = count;
     this.tasks = [];
     this.queue = [];
+    this.num = 0;
+    this.p = null;
   }
   addTask(task) {
     return new Promise((resolve) => {
       this.tasks.push(task);
-      this.run(resolve);
+      this.run().then(() => {
+        resolve();
+      });
     });
   }
-  run(resolve) {
-    const tasks = [...this.tasks];
-
-    this.queue = tasks.splice(0, this.count).map((task, index) => {
-      return task().then(() => {
-        // console.log('index', index);
+  run() {
+    return new Promise((resolve) => {
+      const race = (promises) => Promise.race(promises).then((index) => {
+        // console.log('resolve', resolve, 'index', index);
+        this.num++;
+        // console.log('this.num', this.num);
         resolve();
+        // return Promise.resolve(index);
         return index;
       });
-    });
 
-    let p = Promise.race(this.queue);
-  
-    for (let i = 0, len = tasks.length; i < len; i++) {
-      p = p.then((index) => {
-        this.queue[index] = tasks[i]().then(() => {
-          resolve();
-
-          return index;
+      if (this.p === null && this.tasks.length >= this.count) {
+        this.queue = this.tasks.splice(0, this.count).map((task, index) => {
+          return task().then(() => {
+            // console.log('p = null,index', index);
+            return index;
+          })
         });
+        this.p = race(this.queue);
+      }
 
-        return Promise.race(this.queue);
-      });
-    }
+      if (this.p) {
+        while (this.tasks.length > 0) {
+          let task = this.tasks.shift();
+
+          this.p = this.p.then(index => {
+            this.queue[index] = task().then(() => {
+              // console.log('p = queue, index', index);
+              return index;
+            });
+
+            return race(this.queue);
+          })
+        }
+      }
+    });
   }
 }
 
 var s = new Schedule(2);
-var timeout = (time) => ()  => {
+var timeout = (time) => {
   return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, time);
+    setTimeout(resolve, time);
   });
 };
 
 var addTask = (time, order) => {
-  s.addTask(timeout(time)).then(() => {
-    console.log(order);
-  });
+  s.addTask(() => timeout(time).then(() => {
+    console.log('timeout', order);
+  }));
 };
 
 addTask(1000, '1');
