@@ -88,6 +88,10 @@ function sizeOfObject(set, obj) {
 
 function calculator(set) {
   return function (obj) {
+    if (Buffer.isBuffer(obj)) {
+      return obj.length;
+    }
+
     const type = typeof obj;
 
     switch (type) {

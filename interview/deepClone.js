@@ -61,6 +61,14 @@ const deepClone = (source) => {
 };
 
 
-console.log('arr', arr);
-const res = deepClone(arr);
-console.log('res', res);
+// console.log('arr', arr);
+// const res = deepClone(arr);
+// console.log('res', res);
+
+function historyClone(target) {
+  const temp = history.state;
+  history.replaceState(obj, document.title);
+  const source = history.state;
+  history.replaceState(temp, document.title);
+  return source;
+};
