@@ -44,3 +44,10 @@ Fiber架构的目的, 是实现**增量渲染**
 2.会调用componentDidMount/componentDidUpdate
 也会调用useLayoutEffect钩子函数的回调
 3.会把fiberRoot的current指针指向workInProgressFiber
+
+
+## 
+1. generator有类似的功能, 为什么不直接使⽤?
+React开发⼈员在git issue⾥回答过这个问题. 总结起来主要的就是两点:
+要使⽤generator的话, 需要将涉及的所有代码都包装成generator * 的形式, ⾮常麻烦
+generator内部是有状态的, 很难在恢复执⾏的时候获取之前的状态.
