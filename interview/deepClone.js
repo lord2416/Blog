@@ -35,35 +35,53 @@ const TYPE = {
   date: '[object Date]',
 };
 
-const deepClone = (source) => {
-  const target = Array.isArray(source) ? [] : {};
+// const deepClone = (source) => {
+//   const target = Array.isArray(source) ? [] : {};
 
-  Reflect.ownKeys(source).map(key => {
-    const type = Object.prototype.toString.call(source[key]);
+//   Reflect.ownKeys(source).map(key => {
+//     const type = Object.prototype.toString.call(source[key]);
 
-    switch (type) {
-      case TYPE.object:
-        target[key] = deepClone(source[key]);
-        break;
-      case TYPE.array:
-        target[key] = deepClone(source[key]);
-        break;
-      // case TYPE.date:
-      //   target[key] = new Date(+source[key]);
-      //   break;
-      default:
-        target[key] = source[key];
-        break;
-    }
-  });
+//     switch (type) {
+//       case TYPE.object:
+//         target[key] = deepClone(source[key]);
+//         break;
+//       case TYPE.array:
+//         target[key] = deepClone(source[key]);
+//         break;
+//       // case TYPE.date:
+//       //   target[key] = new Date(+source[key]);
+//       //   break;
+//       default:
+//         target[key] = source[key];
+//         break;
+//     }
+//   });
+
+//   return target;
+// };
+
+const deepClone = (source, map) => {
+  if (map.has(source)) {
+    return map.get(source);
+  }
+
+  const proto = Object.getPrototypeOf(source);
+  const desc = Object.getOwnPropertyDescriptors(source);
+  const target = Object.create(proto, desc);
+
+  map.set(source, target);
+
+  for (let key of Reflect.ownKeys(source)) {
+    target[key] = typeof source[key] === 'object' ? deepClone(source[key], map) : source[key];
+  }
 
   return target;
 };
 
 
-// console.log('arr', arr);
-// const res = deepClone(arr);
-// console.log('res', res);
+console.log('arr', arr);
+const res = deepClone(arr, new WeakMap());
+console.log('res', res);
 
 function historyClone(target) {
   const temp = history.state;
